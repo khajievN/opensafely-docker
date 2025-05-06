@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: jobserver
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  web:
+    image: ghcr.io/khajievn/epsilon:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://user:pass@db:5432/jobserver
+      - JOBSERVER_GITHUB_TOKEN=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
+      - SOCIAL_AUTH_GITHUB_KEY=Ov23liwpK5TC29COihrk
+      - SOCIAL_AUTH_GITHUB_SECRET=1184a3724acec34d2fd4919577200e868a22397f
+      - DEBUG=1
+      - SECRET_KEY=12345
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres_data:

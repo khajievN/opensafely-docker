@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  job-runner:
+    image: ghcr.io/khajievn/opensafely-job-runner:latest
+    container_name: opensafely-job-runner
+    restart: unless-stopped
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${WORKDIR_BASE:-$HOME/opensafely-workdir}:/workdir
+    environment:
+      - WORKDIR=/workdir
+      - BACKEND=test
+      - USING_DUMMY_DATA_BACKEND=True
+      - HIGH_PRIVACY_STORAGE_BASE=/workdir/high_privacy
+      - MEDIUM_PRIVACY_STORAGE_BASE=/workdir/medium_privacy
+      - HIGH_PRIVACY_VOLUME_DIR=/workdir/high_privacy/volumes
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DOCKER_USER_ID=1000
+      - DOCKER_GROUP_ID=1000
+      - DOCKER_HOST_VOLUME_DIR=${WORKDIR_BASE:-$HOME/opensafely-workdir}/high_privacy/volumes
+      - JOB_SERVER_ENDPOINT=${JOB_SERVER_ENDPOINT:-http://host.docker.internal:8000/api/v2/}
+      - POLL_INTERVAL=5
+      - JOB_LOOP_INTERVAL=1.0
+      - TEST_MAX_WORKERS=2
+      - ALLOWED_GITHUB_ORGS=Epsilon-Data
+      - PRIVATE_REPO_ACCESS_TOKEN=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
+      - TEST_JOB_SERVER_TOKEN=684d882a32b6385d1848b4f30c7e2a2f7fb9196e
+    ports:
+      - "8888:8888"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
